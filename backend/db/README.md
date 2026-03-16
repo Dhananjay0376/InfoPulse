@@ -26,4 +26,6 @@ This folder holds the PostgreSQL migration files for the production backend.
 1. Create the PostgreSQL database named `infopulse`.
 2. Apply `migrations/0001_init.sql`.
 3. Copy `backend/.env.example` to `backend/.env` and adjust credentials.
-4. Run `npm run seed:admin` inside `backend` to create the first admin user.
+4. Copy `worker/.env.example` to `worker/.env`.
+5. Run `npm run seed:admin` inside `backend` to create the first admin user.
+6. Set `EMAIL_PROVIDER=smtp` in `worker/.env` and add valid SMTP credentials when you are ready to send real email.
