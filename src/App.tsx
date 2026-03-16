@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Plus,
@@ -13,10 +13,12 @@ import {
 import { useCustomers } from './hooks/useCustomers';
 import { useDeliveries } from './hooks/useDeliveries';
 import { useCampaigns } from './hooks/useCampaigns';
+import { useCampaignInsights } from './hooks/useCampaignInsights';
 import { useSession } from './hooks/useSession';
 import { useTemplates } from './hooks/useTemplates';
 import type { Customer } from './types/customer';
 import LoginPanel from './components/LoginPanel';
+import CampaignInsights from './components/CampaignInsights';
 import CampaignLaunchpad from './components/CampaignLaunchpad';
 import CustomerModal from './components/CustomerModal';
 import CustomerTable from './components/CustomerTable';
@@ -79,6 +81,19 @@ export function App() {
     launchCampaign,
   } = useCampaigns(token);
 
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const selectedCampaign = useMemo(
+    () => campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? campaigns[0] ?? null,
+    [campaigns, selectedCampaignId]
+  );
+  const {
+    summary: campaignSummary,
+    deliveries: campaignDeliveries,
+    loading: campaignInsightsLoading,
+    error: campaignInsightsError,
+    refreshInsights,
+  } = useCampaignInsights(token, selectedCampaign?.id ?? null);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
@@ -86,6 +101,12 @@ export function App() {
   const [bulkDelete, setBulkDelete] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedCampaignId && campaigns.length > 0) {
+      setSelectedCampaignId(campaigns[0].id);
+    }
+  }, [campaigns, selectedCampaignId]);
 
   const handleAdd = () => {
     setEditingCustomer(null);
@@ -210,6 +231,7 @@ export function App() {
                   void refreshDeliveries();
                   void refreshTemplates();
                   void refreshCampaigns();
+                  void refreshInsights();
                 }}
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
               >
@@ -236,8 +258,8 @@ export function App() {
         </motion.div>
 
         {loading ? <p className="mb-6 text-sm text-gray-500">Loading customers...</p> : null}
-        {error || actionError || deliveriesError || templatesError || campaignsError ? (
-          <p className="mb-6 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error ?? actionError ?? deliveriesError ?? templatesError ?? campaignsError}</p>
+        {error || actionError || deliveriesError || templatesError || campaignsError || campaignInsightsError ? (
+          <p className="mb-6 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error ?? actionError ?? deliveriesError ?? templatesError ?? campaignsError ?? campaignInsightsError}</p>
         ) : null}
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mb-8">
@@ -252,13 +274,24 @@ export function App() {
           templates={templates}
           campaigns={campaigns}
           loading={campaignsLoading}
+          selectedCampaignId={selectedCampaign?.id ?? null}
           onCreate={async (input) => {
-            await addCampaign(input);
+            const campaign = await addCampaign(input);
+            if (campaign) setSelectedCampaignId(campaign.id);
           }}
           onLaunch={async (campaignId) => {
             await launchCampaign(campaignId);
             void refreshDeliveries();
+            void refreshInsights();
           }}
+          onSelectCampaign={setSelectedCampaignId}
+        />
+
+        <CampaignInsights
+          campaign={selectedCampaign}
+          summary={campaignSummary}
+          deliveries={campaignDeliveries}
+          loading={campaignInsightsLoading}
         />
 
         <motion.div

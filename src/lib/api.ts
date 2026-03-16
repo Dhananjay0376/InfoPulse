@@ -101,6 +101,15 @@ export interface CampaignPayload {
   updatedAt: string;
 }
 
+export interface CampaignDeliverySummary {
+  accepted?: number;
+  delivered?: number;
+  failed?: number;
+  bounced?: number;
+  complained?: number;
+  queued?: number;
+}
+
 export interface CustomerInput {
   name: string;
   email: string;
@@ -171,6 +180,10 @@ export async function bulkDeleteCustomers(token: string, ids: string[]) {
 
 export async function listDeliveries(token: string) {
   return request<{ deliveries: DeliveryPayload[] }>("/deliveries", { token });
+}
+
+export async function getCampaignDeliveries(token: string, campaignId: string) {
+  return request<{ summary: CampaignDeliverySummary; deliveries: DeliveryPayload[] }>(`/deliveries/campaigns/${campaignId}`, { token });
 }
 
 export async function listTemplates(token: string) {

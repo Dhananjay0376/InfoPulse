@@ -8,8 +8,10 @@ interface Props {
   templates: TemplatePayload[];
   campaigns: CampaignPayload[];
   loading: boolean;
+  selectedCampaignId: string | null;
   onCreate: (input: CampaignInput) => Promise<void>;
   onLaunch: (campaignId: string) => Promise<void>;
+  onSelectCampaign: (campaignId: string) => void;
 }
 
 function formatTime(value: string | null) {
@@ -35,7 +37,7 @@ function statusClass(status: CampaignPayload["status"]) {
   }
 }
 
-export default function CampaignLaunchpad({ templates, campaigns, loading, onCreate, onLaunch }: Props) {
+export default function CampaignLaunchpad({ templates, campaigns, loading, selectedCampaignId, onCreate, onLaunch, onSelectCampaign }: Props) {
   const defaultTemplateId = useMemo(() => templates[0]?.id ?? "", [templates]);
   const [form, setForm] = useState({
     name: "Monthly Product Update",
@@ -140,7 +142,12 @@ export default function CampaignLaunchpad({ templates, campaigns, loading, onCre
             <p className="rounded-2xl bg-slate-50 px-4 py-5 text-sm text-slate-500">No campaigns yet.</p>
           ) : (
             campaigns.slice(0, 6).map((campaign) => (
-              <div key={campaign.id} className="rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-4">
+              <button
+                key={campaign.id}
+                type="button"
+                onClick={() => onSelectCampaign(campaign.id)}
+                className={`block w-full rounded-2xl border px-4 py-4 text-left transition ${selectedCampaignId === campaign.id ? "border-fuchsia-300 bg-fuchsia-50/70" : "border-slate-100 bg-slate-50/80 hover:bg-slate-100/80"}`}
+              >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-slate-900">{campaign.name}</p>
@@ -152,17 +159,19 @@ export default function CampaignLaunchpad({ templates, campaigns, loading, onCre
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusClass(campaign.status)}`}>
                       {campaign.status}
                     </span>
-                    <button
-                      onClick={() => void handleLaunch(campaign.id)}
-                      disabled={launchingId === campaign.id || !["draft", "scheduled"].includes(campaign.status)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    <span
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleLaunch(campaign.id);
+                      }}
+                      className={`inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white ${launchingId === campaign.id || !["draft", "scheduled"].includes(campaign.status) ? "opacity-50" : "hover:bg-slate-700"}`}
                     >
                       <Play size={14} />
                       {launchingId === campaign.id ? "Launching..." : "Launch"}
-                    </button>
+                    </span>
                   </div>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
