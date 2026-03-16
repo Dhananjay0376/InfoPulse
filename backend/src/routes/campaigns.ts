@@ -1,5 +1,8 @@
 import { Router } from "express";
 
+import { validateBody } from "../middleware.validate.js";
+import { campaignInputSchema } from "../schemas/campaigns.js";
+
 export const campaignRouter = Router();
 
 campaignRouter.get("/", (_req, res) => {
@@ -8,9 +11,10 @@ campaignRouter.get("/", (_req, res) => {
   });
 });
 
-campaignRouter.post("/", (_req, res) => {
+campaignRouter.post("/", validateBody(campaignInputSchema), (req, res) => {
   res.status(501).json({
     message: "Create campaign endpoint not implemented yet",
+    received: req.body,
   });
 });
 

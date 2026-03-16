@@ -1,5 +1,8 @@
 import { Router } from "express";
 
+import { validateBody } from "../middleware.validate.js";
+import { customerInputSchema } from "../schemas/customers.js";
+
 export const customerRouter = Router();
 
 customerRouter.get("/", (_req, res) => {
@@ -8,9 +11,10 @@ customerRouter.get("/", (_req, res) => {
   });
 });
 
-customerRouter.post("/", (_req, res) => {
+customerRouter.post("/", validateBody(customerInputSchema), (req, res) => {
   res.status(501).json({
     message: "Create customer endpoint not implemented yet",
+    received: req.body,
   });
 });
 
