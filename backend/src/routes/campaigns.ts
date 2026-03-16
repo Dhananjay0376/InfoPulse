@@ -4,7 +4,8 @@ import { asyncHandler } from "../lib/async-handler.js";
 import { HttpError } from "../lib/http-error.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { validateBody } from "../middleware.validate.js";
-import { createCampaign, launchCampaign, listCampaigns } from "../repositories/campaigns.js";
+import { enqueueCampaignLaunch } from "../queue/campaign-launch.js";
+import { createCampaign, launchCampaign, listCampaigns, snapshotCampaignRecipients } from "../repositories/campaigns.js";
 import { campaignInputSchema } from "../schemas/campaigns.js";
 
 export const campaignRouter = Router();
@@ -45,6 +46,18 @@ campaignRouter.post(
       throw new HttpError(404, "Campaign not found or not launchable");
     }
 
-    res.json({ campaign });
+    const recipientCount = await snapshotCampaignRecipients(campaign.id);
+
+    await enqueueCampaignLaunch({
+      campaignId: campaign.id,
+      launchedBy: req.auth!.userId,
+    });
+
+    res.json({
+      campaign: {
+        ...campaign,
+        recipientCount,
+      },
+    });
   })
 );
