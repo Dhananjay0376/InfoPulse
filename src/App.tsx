@@ -132,7 +132,7 @@ export function App() {
               </div>
               <div>
                 <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                  Customer<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">Hub</span>
+                  Info<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">Pulse</span>
                 </h1>
                 <p className="text-sm text-gray-500 flex items-center gap-1.5">
                   <Sparkles size={12} className="text-indigo-400" />
