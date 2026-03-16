@@ -9,3 +9,7 @@ export const customerInputSchema = z.object({
   notes: z.string().max(2000).optional(),
   emailOptIn: z.boolean().default(true),
 });
+
+export const bulkDeleteCustomersSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1),
+});
