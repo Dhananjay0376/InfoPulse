@@ -58,6 +58,23 @@ export interface CustomerPayload {
   emailOptIn: boolean;
 }
 
+export interface DeliveryPayload {
+  id: string;
+  campaignId: string;
+  campaignRecipientId: string;
+  customerId: string;
+  provider: string;
+  providerMessageId: string | null;
+  status: "queued" | "accepted" | "delivered" | "bounced" | "complained" | "failed";
+  errorCode: string | null;
+  errorMessage: string | null;
+  sentAt: string | null;
+  deliveredAt: string | null;
+  failedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CustomerInput {
   name: string;
   email: string;
@@ -110,4 +127,8 @@ export async function bulkDeleteCustomers(token: string, ids: string[]) {
     token,
     body: JSON.stringify({ ids }),
   });
+}
+
+export async function listDeliveries(token: string) {
+  return request<{ deliveries: DeliveryPayload[] }>("/deliveries", { token });
 }

@@ -11,6 +11,7 @@ import {
   RefreshCcw,
 } from 'lucide-react';
 import { useCustomers } from './hooks/useCustomers';
+import { useDeliveries } from './hooks/useDeliveries';
 import { useSession } from './hooks/useSession';
 import type { Customer } from './types/customer';
 import LoginPanel from './components/LoginPanel';
@@ -18,6 +19,7 @@ import CustomerModal from './components/CustomerModal';
 import CustomerTable from './components/CustomerTable';
 import CustomerDetailModal from './components/CustomerDetailModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
+import DeliveryHistory from './components/DeliveryHistory';
 import ExportMenu from './components/ExportMenu';
 import StatsCards from './components/StatsCards';
 
@@ -51,6 +53,12 @@ export function App() {
     sortOrder,
     setSortOrder,
   } = useCustomers(token);
+  const {
+    deliveries,
+    loading: deliveriesLoading,
+    error: deliveriesError,
+    refreshDeliveries,
+  } = useDeliveries(token);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -178,7 +186,10 @@ export function App() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={() => void refreshCustomers()}
+                onClick={() => {
+                  void refreshCustomers();
+                  void refreshDeliveries();
+                }}
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
               >
                 <RefreshCcw size={16} />
@@ -204,8 +215,8 @@ export function App() {
         </motion.div>
 
         {loading ? <p className="mb-6 text-sm text-gray-500">Loading customers...</p> : null}
-        {error || actionError ? (
-          <p className="mb-6 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error ?? actionError}</p>
+        {error || actionError || deliveriesError ? (
+          <p className="mb-6 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error ?? actionError ?? deliveriesError}</p>
         ) : null}
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mb-8">
@@ -282,6 +293,8 @@ export function App() {
             onView={c => setViewingCustomer(c)}
           />
         </motion.div>
+
+        <DeliveryHistory deliveries={deliveries} loading={deliveriesLoading} />
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="mt-8 text-center">
           <p className="text-xs text-gray-400">InfoPulse • Connected to the backend API</p>
