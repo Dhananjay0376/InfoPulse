@@ -40,7 +40,11 @@ campaignRouter.post(
   requireAuth,
   requireRole(["admin", "sender"]),
   asyncHandler(async (req, res) => {
-    const campaign = await launchCampaign(req.params.campaignId);
+    const campaignId = Array.isArray(req.params.campaignId)
+      ? req.params.campaignId[0]
+      : req.params.campaignId;
+
+    const campaign = await launchCampaign(campaignId);
 
     if (!campaign) {
       throw new HttpError(404, "Campaign not found or not launchable");

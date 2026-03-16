@@ -23,7 +23,7 @@ export async function processCampaignLaunch(campaignId: string) {
 
   await emailDeliveryQueue.addBulk(
     recipientsResult.rows.map((row) => ({
-      name: "deliver-email",
+      name: "deliver-email" as const,
       data: {
         campaignId,
         campaignRecipientId: String(row.id),
