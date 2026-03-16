@@ -12,9 +12,12 @@ import {
 } from 'lucide-react';
 import { useCustomers } from './hooks/useCustomers';
 import { useDeliveries } from './hooks/useDeliveries';
+import { useCampaigns } from './hooks/useCampaigns';
 import { useSession } from './hooks/useSession';
+import { useTemplates } from './hooks/useTemplates';
 import type { Customer } from './types/customer';
 import LoginPanel from './components/LoginPanel';
+import CampaignLaunchpad from './components/CampaignLaunchpad';
 import CustomerModal from './components/CustomerModal';
 import CustomerTable from './components/CustomerTable';
 import CustomerDetailModal from './components/CustomerDetailModal';
@@ -22,6 +25,7 @@ import DeleteConfirmModal from './components/DeleteConfirmModal';
 import DeliveryHistory from './components/DeliveryHistory';
 import ExportMenu from './components/ExportMenu';
 import StatsCards from './components/StatsCards';
+import TemplateStudio from './components/TemplateStudio';
 
 export function App() {
   const {
@@ -59,6 +63,21 @@ export function App() {
     error: deliveriesError,
     refreshDeliveries,
   } = useDeliveries(token);
+  const {
+    templates,
+    loading: templatesLoading,
+    error: templatesError,
+    refreshTemplates,
+    addTemplate,
+  } = useTemplates(token);
+  const {
+    campaigns,
+    loading: campaignsLoading,
+    error: campaignsError,
+    refreshCampaigns,
+    addCampaign,
+    launchCampaign,
+  } = useCampaigns(token);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -189,6 +208,8 @@ export function App() {
                 onClick={() => {
                   void refreshCustomers();
                   void refreshDeliveries();
+                  void refreshTemplates();
+                  void refreshCampaigns();
                 }}
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
               >
@@ -215,19 +236,36 @@ export function App() {
         </motion.div>
 
         {loading ? <p className="mb-6 text-sm text-gray-500">Loading customers...</p> : null}
-        {error || actionError || deliveriesError ? (
-          <p className="mb-6 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error ?? actionError ?? deliveriesError}</p>
+        {error || actionError || deliveriesError || templatesError || campaignsError ? (
+          <p className="mb-6 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error ?? actionError ?? deliveriesError ?? templatesError ?? campaignsError}</p>
         ) : null}
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mb-8">
           <StatsCards customers={allCustomers} />
         </motion.div>
 
+        <TemplateStudio templates={templates} loading={templatesLoading} onCreate={async (input) => {
+          await addTemplate(input);
+        }} />
+
+        <CampaignLaunchpad
+          templates={templates}
+          campaigns={campaigns}
+          loading={campaignsLoading}
+          onCreate={async (input) => {
+            await addCampaign(input);
+          }}
+          onLaunch={async (campaignId) => {
+            await launchCampaign(campaignId);
+            void refreshDeliveries();
+          }}
+        />
+
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-6 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center"
+          className="mb-6 mt-10 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center"
         >
           <div className="relative flex-1">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />

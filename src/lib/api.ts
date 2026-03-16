@@ -75,12 +75,52 @@ export interface DeliveryPayload {
   updatedAt: string;
 }
 
+export interface TemplatePayload {
+  id: string;
+  name: string;
+  subject: string;
+  bodyHtml: string;
+  bodyText: string | null;
+  variables: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignPayload {
+  id: string;
+  name: string;
+  channel: "email";
+  templateId: string;
+  status: "draft" | "scheduled" | "processing" | "completed" | "failed" | "cancelled";
+  scheduledAt: string | null;
+  launchedAt: string | null;
+  completedAt: string | null;
+  recipientCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CustomerInput {
   name: string;
   email: string;
   phone: string;
   dob: string;
   gender: "Male" | "Female" | "Other";
+}
+
+export interface TemplateInput {
+  name: string;
+  subject: string;
+  bodyHtml: string;
+  bodyText?: string;
+  variables?: string[];
+}
+
+export interface CampaignInput {
+  name: string;
+  templateId: string;
+  scheduledAt?: string;
 }
 
 export async function login(email: string, password: string) {
@@ -131,4 +171,35 @@ export async function bulkDeleteCustomers(token: string, ids: string[]) {
 
 export async function listDeliveries(token: string) {
   return request<{ deliveries: DeliveryPayload[] }>("/deliveries", { token });
+}
+
+export async function listTemplates(token: string) {
+  return request<{ templates: TemplatePayload[] }>("/templates", { token });
+}
+
+export async function createTemplate(token: string, template: TemplateInput) {
+  return request<{ template: TemplatePayload }>("/templates", {
+    method: "POST",
+    token,
+    body: JSON.stringify(template),
+  });
+}
+
+export async function listCampaigns(token: string) {
+  return request<{ campaigns: CampaignPayload[] }>("/campaigns", { token });
+}
+
+export async function createCampaign(token: string, campaign: CampaignInput) {
+  return request<{ campaign: CampaignPayload }>("/campaigns", {
+    method: "POST",
+    token,
+    body: JSON.stringify(campaign),
+  });
+}
+
+export async function launchCampaign(token: string, campaignId: string) {
+  return request<{ campaign: CampaignPayload }>(`/campaigns/${campaignId}/launch`, {
+    method: "POST",
+    token,
+  });
 }
