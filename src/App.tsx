@@ -295,9 +295,19 @@ export function App() {
         </motion.div>
 
         {user?.role === 'admin' ? (
-          <UserManagement users={users} loading={usersLoading} onCreate={async (input) => {
-            await addUser(input);
-          }} />
+          <UserManagement
+            users={users}
+            loading={usersLoading}
+            onCreate={async (input) => {
+              await addUser(input);
+            }}
+            onUpdate={async (userId, input) => {
+              await updateManagedUser(userId, input);
+            }}
+            onResetPassword={async (userId, password) => {
+              await resetManagedUserPassword(userId, password);
+            }}
+          />
         ) : null}
 
         <TemplateStudio templates={templates} loading={templatesLoading} onCreate={async (input) => {
@@ -431,3 +441,5 @@ export function App() {
     </div>
   );
 }
+
+

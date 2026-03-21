@@ -3,8 +3,11 @@ import { useCallback, useEffect, useState } from "react";
 import {
   createUser,
   listUsers,
+  resetUserPassword,
+  updateUser,
   type ManagedUserInput,
   type ManagedUserPayload,
+  type ManagedUserUpdateInput,
 } from "../lib/api";
 
 export function useManagedUsers(token: string | null, enabled: boolean) {
@@ -36,12 +39,35 @@ export function useManagedUsers(token: string | null, enabled: boolean) {
     void refreshUsers();
   }, [refreshUsers]);
 
-  const addUser = useCallback(async (input: ManagedUserInput) => {
-    if (!token || !enabled) return;
-    const response = await createUser(token, input);
-    setUsers((prev) => [response.user, ...prev]);
-    return response.user;
-  }, [token, enabled]);
+  const addUser = useCallback(
+    async (input: ManagedUserInput) => {
+      if (!token || !enabled) return;
+      const response = await createUser(token, input);
+      setUsers((prev) => [response.user, ...prev]);
+      return response.user;
+    },
+    [token, enabled]
+  );
+
+  const updateManagedUser = useCallback(
+    async (userId: string, input: ManagedUserUpdateInput) => {
+      if (!token || !enabled) return;
+      const response = await updateUser(token, userId, input);
+      setUsers((prev) => prev.map((user) => (user.id === userId ? response.user : user)));
+      return response.user;
+    },
+    [token, enabled]
+  );
+
+  const resetManagedUserPassword = useCallback(
+    async (userId: string, password: string) => {
+      if (!token || !enabled) return;
+      const response = await resetUserPassword(token, userId, password);
+      setUsers((prev) => prev.map((user) => (user.id === userId ? response.user : user)));
+      return response.user;
+    },
+    [token, enabled]
+  );
 
   return {
     users,
@@ -49,5 +75,7 @@ export function useManagedUsers(token: string | null, enabled: boolean) {
     error,
     refreshUsers,
     addUser,
+    updateManagedUser,
+    resetManagedUserPassword,
   };
 }

@@ -51,6 +51,7 @@ export interface ManagedUserPayload {
   email: string;
   fullName: string;
   role: "admin" | "sender" | "viewer";
+  isActive: boolean;
 }
 
 export interface CustomerPayload {
@@ -146,6 +147,11 @@ export interface ManagedUserInput {
   role: "admin" | "sender" | "viewer";
 }
 
+export interface ManagedUserUpdateInput {
+  role: "admin" | "sender" | "viewer";
+  isActive: boolean;
+}
+
 export async function login(email: string, password: string) {
   return request<{ token: string; user: AuthUser }>("/auth/login", {
     method: "POST",
@@ -166,6 +172,22 @@ export async function createUser(token: string, user: ManagedUserInput) {
     method: "POST",
     token,
     body: JSON.stringify(user),
+  });
+}
+
+export async function updateUser(token: string, userId: string, input: ManagedUserUpdateInput) {
+  return request<{ user: ManagedUserPayload }>(`/users/${userId}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function resetUserPassword(token: string, userId: string, password: string) {
+  return request<{ user: ManagedUserPayload }>(`/users/${userId}/reset-password`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({ password }),
   });
 }
 
