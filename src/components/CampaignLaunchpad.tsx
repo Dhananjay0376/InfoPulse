@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Play, Send, TimerReset } from "lucide-react";
+import { Lock, Play, Send, TimerReset } from "lucide-react";
 
 import type { CampaignInput, CampaignPayload, TemplatePayload } from "../lib/api";
 
@@ -9,6 +9,7 @@ interface Props {
   campaigns: CampaignPayload[];
   loading: boolean;
   selectedCampaignId: string | null;
+  canManage: boolean;
   onCreate: (input: CampaignInput) => Promise<void>;
   onLaunch: (campaignId: string) => Promise<void>;
   onSelectCampaign: (campaignId: string) => void;
@@ -37,7 +38,7 @@ function statusClass(status: CampaignPayload["status"]) {
   }
 }
 
-export default function CampaignLaunchpad({ templates, campaigns, loading, selectedCampaignId, onCreate, onLaunch, onSelectCampaign }: Props) {
+export default function CampaignLaunchpad({ templates, campaigns, loading, selectedCampaignId, canManage, onCreate, onLaunch, onSelectCampaign }: Props) {
   const defaultTemplateId = useMemo(() => templates[0]?.id ?? "", [templates]);
   const [form, setForm] = useState({
     name: "Monthly Product Update",
@@ -95,46 +96,52 @@ export default function CampaignLaunchpad({ templates, campaigns, loading, selec
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Campaign Launchpad</p>
-            <h2 className="mt-2 text-2xl font-black text-slate-900">Prepare a send</h2>
+            <h2 className="mt-2 text-2xl font-black text-slate-900">{canManage ? "Prepare a send" : "Campaign overview"}</h2>
           </div>
           <div className="rounded-2xl bg-fuchsia-50 p-3 text-fuchsia-600">
-            <Send size={20} />
+            {canManage ? <Send size={20} /> : <Lock size={20} />}
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <input
-            value={form.name}
-            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-fuchsia-400 focus:bg-white focus:ring-4 focus:ring-fuchsia-100"
-            placeholder="Campaign name"
-          />
-          <select
-            value={form.templateId}
-            onChange={(event) => setForm((current) => ({ ...current, templateId: event.target.value }))}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-fuchsia-400 focus:bg-white focus:ring-4 focus:ring-fuchsia-100"
-          >
-            <option value="">Select template</option>
-            {templates.map((template) => (
-              <option key={template.id} value={template.id}>{template.name}</option>
-            ))}
-          </select>
-          <input
-            type="datetime-local"
-            value={form.scheduledAt}
-            onChange={(event) => setForm((current) => ({ ...current, scheduledAt: event.target.value }))}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-fuchsia-400 focus:bg-white focus:ring-4 focus:ring-fuchsia-100"
-          />
-          {error ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p> : null}
-          <button
-            type="submit"
-            disabled={submitting || !form.templateId}
-            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-rose-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-200 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <TimerReset size={16} />
-            {submitting ? "Creating..." : "Create Campaign"}
-          </button>
-        </form>
+        {canManage ? (
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <input
+              value={form.name}
+              onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-fuchsia-400 focus:bg-white focus:ring-4 focus:ring-fuchsia-100"
+              placeholder="Campaign name"
+            />
+            <select
+              value={form.templateId}
+              onChange={(event) => setForm((current) => ({ ...current, templateId: event.target.value }))}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-fuchsia-400 focus:bg-white focus:ring-4 focus:ring-fuchsia-100"
+            >
+              <option value="">Select template</option>
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>{template.name}</option>
+              ))}
+            </select>
+            <input
+              type="datetime-local"
+              value={form.scheduledAt}
+              onChange={(event) => setForm((current) => ({ ...current, scheduledAt: event.target.value }))}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-fuchsia-400 focus:bg-white focus:ring-4 focus:ring-fuchsia-100"
+            />
+            {error ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p> : null}
+            <button
+              type="submit"
+              disabled={submitting || !form.templateId}
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-rose-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-200 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <TimerReset size={16} />
+              {submitting ? "Creating..." : "Create Campaign"}
+            </button>
+          </form>
+        ) : (
+          <div className="mt-6 rounded-2xl bg-slate-50 px-4 py-5 text-sm text-slate-600">
+            Viewer accounts can monitor campaign status and delivery results, but launching and drafting campaigns is limited to sender and admin roles.
+          </div>
+        )}
       </div>
 
       <div className="rounded-3xl bg-white p-6 shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 sm:p-8">
@@ -170,16 +177,18 @@ export default function CampaignLaunchpad({ templates, campaigns, loading, selec
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusClass(campaign.status)}`}>
                       {campaign.status}
                     </span>
-                    <span
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void handleLaunch(campaign.id);
-                      }}
-                      className={`inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white ${launchingId === campaign.id || !["draft", "scheduled"].includes(campaign.status) ? "opacity-50" : "hover:bg-slate-700"}`}
-                    >
-                      <Play size={14} />
-                      {launchingId === campaign.id ? "Launching..." : "Launch"}
-                    </span>
+                    {canManage ? (
+                      <span
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void handleLaunch(campaign.id);
+                        }}
+                        className={`inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white ${launchingId === campaign.id || !["draft", "scheduled"].includes(campaign.status) ? "opacity-50" : "hover:bg-slate-700"}`}
+                      >
+                        <Play size={14} />
+                        {launchingId === campaign.id ? "Launching..." : "Launch"}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </button>

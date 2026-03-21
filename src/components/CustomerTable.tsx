@@ -14,6 +14,7 @@ interface Props {
   onToggleSelect: (id: string) => void;
   onToggleSelectAll: () => void;
   onView: (customer: Customer) => void;
+  canManage: boolean;
 }
 
 function formatDate(iso: string) {
@@ -70,6 +71,7 @@ export default function CustomerTable({
   onToggleSelect,
   onToggleSelectAll,
   onView,
+  canManage,
 }: Props) {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const allSelected = customers.length > 0 && selectedIds.length === customers.length;
@@ -98,14 +100,16 @@ export default function CustomerTable({
         <table className="w-full">
           <thead>
             <tr className="bg-gradient-to-r from-gray-50 to-gray-100/50">
-              <th className="w-12 py-4 pl-6">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={onToggleSelectAll}
-                  className="h-4 w-4 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
-                />
-              </th>
+              {canManage ? (
+                <th className="w-12 py-4 pl-6">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={onToggleSelectAll}
+                    className="h-4 w-4 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                  />
+                </th>
+              ) : null}
               {columns.map(col => (
                 <th
                   key={col.key}
@@ -139,14 +143,16 @@ export default function CustomerTable({
                     selectedIds.includes(c.id) ? 'bg-indigo-50/60' : hoveredRow === c.id ? 'bg-gray-50/80' : ''
                   }`}
                 >
-                  <td className="py-3.5 pl-6">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(c.id)}
-                      onChange={() => onToggleSelect(c.id)}
-                      className="h-4 w-4 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
-                    />
-                  </td>
+                  {canManage ? (
+                    <td className="py-3.5 pl-6">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(c.id)}
+                        onChange={() => onToggleSelect(c.id)}
+                        className="h-4 w-4 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                      />
+                    </td>
+                  ) : null}
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <div
@@ -179,20 +185,24 @@ export default function CustomerTable({
                       >
                         <Eye size={15} />
                       </button>
-                      <button
-                        onClick={() => onEdit(c)}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition-all"
-                        title="Edit"
-                      >
-                        <Edit3 size={15} />
-                      </button>
-                      <button
-                        onClick={() => onDelete(c.id)}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
-                        title="Delete"
-                      >
-                        <Trash2 size={15} />
-                      </button>
+                      {canManage ? (
+                        <>
+                          <button
+                            onClick={() => onEdit(c)}
+                            className="rounded-lg p-2 text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition-all"
+                            title="Edit"
+                          >
+                            <Edit3 size={15} />
+                          </button>
+                          <button
+                            onClick={() => onDelete(c.id)}
+                            className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                            title="Delete"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   </td>
                 </motion.tr>

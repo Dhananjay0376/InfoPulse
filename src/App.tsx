@@ -203,6 +203,7 @@ export function App() {
   };
 
   const genderOptions = ['All', 'Male', 'Female', 'Other'];
+  const canManageRecords = user?.role === 'admin' || user?.role === 'sender';
   const hasProcessingCampaign = useMemo(
     () => campaigns.some((campaign) => campaign.status === 'processing'),
     [campaigns]
@@ -267,13 +268,15 @@ export function App() {
                 Refresh
               </button>
               <ExportMenu customers={allCustomers} />
-              <button
-                onClick={handleAdd}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-300"
-              >
-                <Plus size={16} />
-                Add Customer
-              </button>
+              {canManageRecords ? (
+                <button
+                  onClick={handleAdd}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-300"
+                >
+                  <Plus size={16} />
+                  Add Customer
+                </button>
+              ) : null}
               <button
                 onClick={signOut}
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
@@ -310,7 +313,7 @@ export function App() {
           />
         ) : null}
 
-        <TemplateStudio templates={templates} loading={templatesLoading} onCreate={async (input) => {
+        <TemplateStudio templates={templates} loading={templatesLoading} canManage={canManageRecords} onCreate={async (input) => {
           await addTemplate(input);
         }} />
 
@@ -319,6 +322,7 @@ export function App() {
           campaigns={campaigns}
           loading={campaignsLoading}
           selectedCampaignId={selectedCampaign?.id ?? null}
+          canManage={canManageRecords}
           onCreate={async (input) => {
             const campaign = await addCampaign(input);
             if (campaign) setSelectedCampaignId(campaign.id);
@@ -374,7 +378,7 @@ export function App() {
             </div>
           </div>
 
-          {selectedIds.length > 0 && (
+          {canManageRecords && selectedIds.length > 0 && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -397,6 +401,7 @@ export function App() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <CustomerTable
             customers={customers}
+            canManage={canManageRecords}
             sortField={sortField}
             sortOrder={sortOrder}
             onSort={handleSort}
@@ -441,5 +446,9 @@ export function App() {
     </div>
   );
 }
+
+
+
+
 
 
