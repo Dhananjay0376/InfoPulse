@@ -80,6 +80,8 @@ export function App() {
     error: usersError,
     refreshUsers,
     addUser,
+    updateManagedUser,
+    resetManagedUserPassword,
   } = useManagedUsers(token, user?.role === 'admin');
   const {
     campaigns,
