@@ -194,6 +194,24 @@ export function App() {
   };
 
   const genderOptions = ['All', 'Male', 'Female', 'Other'];
+  const hasProcessingCampaign = useMemo(
+    () => campaigns.some((campaign) => campaign.status === 'processing'),
+    [campaigns]
+  );
+
+  useEffect(() => {
+    if (!hasProcessingCampaign) return;
+
+    const interval = window.setInterval(() => {
+      void refreshCampaigns();
+      void refreshDeliveries();
+      void refreshInsights();
+    }, 5000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [hasProcessingCampaign, refreshCampaigns, refreshDeliveries, refreshInsights]);
 
   if (!isAuthenticated) {
     return <LoginPanel isLoading={sessionLoading} error={sessionError} onSubmit={handleSignIn} />;
@@ -397,3 +415,4 @@ export function App() {
     </div>
   );
 }
+
