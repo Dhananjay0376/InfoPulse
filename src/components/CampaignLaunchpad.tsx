@@ -42,6 +42,7 @@ export default function CampaignLaunchpad({ templates, campaigns, loading, selec
   const [form, setForm] = useState({
     name: "Monthly Product Update",
     templateId: defaultTemplateId,
+    scheduledAt: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +58,12 @@ export default function CampaignLaunchpad({ templates, campaigns, loading, selec
     setError(null);
 
     try {
-      await onCreate(form);
-      setForm((current) => ({ ...current, name: `${current.name} Draft` }));
+      await onCreate({
+        name: form.name,
+        templateId: form.templateId,
+        scheduledAt: form.scheduledAt ? new Date(form.scheduledAt).toISOString() : undefined,
+      });
+      setForm((current) => ({ ...current, name: `${current.name} Draft`, scheduledAt: "" }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create campaign");
     } finally {
@@ -114,6 +119,12 @@ export default function CampaignLaunchpad({ templates, campaigns, loading, selec
               <option key={template.id} value={template.id}>{template.name}</option>
             ))}
           </select>
+          <input
+            type="datetime-local"
+            value={form.scheduledAt}
+            onChange={(event) => setForm((current) => ({ ...current, scheduledAt: event.target.value }))}
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-fuchsia-400 focus:bg-white focus:ring-4 focus:ring-fuchsia-100"
+          />
           {error ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p> : null}
           <button
             type="submit"
