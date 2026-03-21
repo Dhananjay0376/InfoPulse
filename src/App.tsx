@@ -16,6 +16,7 @@ import { useCampaigns } from './hooks/useCampaigns';
 import { useCampaignInsights } from './hooks/useCampaignInsights';
 import { useSession } from './hooks/useSession';
 import { useTemplates } from './hooks/useTemplates';
+import { useManagedUsers } from './hooks/useManagedUsers';
 import type { Customer } from './types/customer';
 import LoginPanel from './components/LoginPanel';
 import CampaignInsights from './components/CampaignInsights';
@@ -28,6 +29,7 @@ import DeliveryHistory from './components/DeliveryHistory';
 import ExportMenu from './components/ExportMenu';
 import StatsCards from './components/StatsCards';
 import TemplateStudio from './components/TemplateStudio';
+import UserManagement from './components/UserManagement';
 
 export function App() {
   const {
@@ -72,6 +74,13 @@ export function App() {
     refreshTemplates,
     addTemplate,
   } = useTemplates(token);
+  const {
+    users,
+    loading: usersLoading,
+    error: usersError,
+    refreshUsers,
+    addUser,
+  } = useManagedUsers(token, user?.role === 'admin');
   const {
     campaigns,
     loading: campaignsLoading,
@@ -250,6 +259,7 @@ export function App() {
                   void refreshTemplates();
                   void refreshCampaigns();
                   void refreshInsights();
+                  void refreshUsers();
                 }}
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
               >
@@ -276,13 +286,19 @@ export function App() {
         </motion.div>
 
         {loading ? <p className="mb-6 text-sm text-gray-500">Loading customers...</p> : null}
-        {error || actionError || deliveriesError || templatesError || campaignsError || campaignInsightsError ? (
-          <p className="mb-6 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error ?? actionError ?? deliveriesError ?? templatesError ?? campaignsError ?? campaignInsightsError}</p>
+        {error || actionError || deliveriesError || templatesError || campaignsError || campaignInsightsError || usersError ? (
+          <p className="mb-6 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error ?? actionError ?? deliveriesError ?? templatesError ?? campaignsError ?? campaignInsightsError ?? usersError}</p>
         ) : null}
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mb-8">
           <StatsCards customers={allCustomers} />
         </motion.div>
+
+        {user?.role === 'admin' ? (
+          <UserManagement users={users} loading={usersLoading} onCreate={async (input) => {
+            await addUser(input);
+          }} />
+        ) : null}
 
         <TemplateStudio templates={templates} loading={templatesLoading} onCreate={async (input) => {
           await addTemplate(input);
@@ -415,4 +431,3 @@ export function App() {
     </div>
   );
 }
-

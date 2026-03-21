@@ -46,6 +46,13 @@ export interface AuthUser {
   role: "admin" | "sender" | "viewer";
 }
 
+export interface ManagedUserPayload {
+  id: string;
+  email: string;
+  fullName: string;
+  role: "admin" | "sender" | "viewer";
+}
+
 export interface CustomerPayload {
   id: string;
   name: string;
@@ -132,6 +139,13 @@ export interface CampaignInput {
   scheduledAt?: string;
 }
 
+export interface ManagedUserInput {
+  email: string;
+  password: string;
+  fullName: string;
+  role: "admin" | "sender" | "viewer";
+}
+
 export async function login(email: string, password: string) {
   return request<{ token: string; user: AuthUser }>("/auth/login", {
     method: "POST",
@@ -141,6 +155,18 @@ export async function login(email: string, password: string) {
 
 export async function getCurrentUser(token: string) {
   return request<{ user: AuthUser }>("/auth/me", { token });
+}
+
+export async function listUsers(token: string) {
+  return request<{ users: ManagedUserPayload[] }>("/users", { token });
+}
+
+export async function createUser(token: string, user: ManagedUserInput) {
+  return request<{ user: ManagedUserPayload }>("/users", {
+    method: "POST",
+    token,
+    body: JSON.stringify(user),
+  });
 }
 
 export async function listCustomers(token: string) {
