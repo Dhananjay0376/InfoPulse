@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Sparkles } from "lucide-react";
+import { Eye, FileText, Sparkles } from "lucide-react";
 
 import type { TemplateInput, TemplatePayload } from "../lib/api";
 
@@ -18,6 +18,20 @@ export default function TemplateStudio({ templates, loading, onCreate }: Props) 
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const previewHtml = useMemo(
+    () =>
+      form.bodyHtml
+        .replaceAll("{{name}}", "Aarav Mehta")
+        .replaceAll("{{email}}", "aarav@example.com"),
+    [form.bodyHtml]
+  );
+  const previewSubject = useMemo(
+    () =>
+      form.subject
+        .replaceAll("{{name}}", "Aarav Mehta")
+        .replaceAll("{{email}}", "aarav@example.com"),
+    [form.subject]
+  );
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -108,6 +122,44 @@ export default function TemplateStudio({ templates, loading, onCreate }: Props) 
               </div>
             ))
           )}
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-dashed border-indigo-200 bg-[linear-gradient(180deg,rgba(238,242,255,0.65),rgba(255,255,255,0.96))] p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-400">Live Preview</p>
+              <h3 className="mt-2 text-lg font-black text-slate-900">Rendered email output</h3>
+            </div>
+            <div className="rounded-2xl bg-white p-3 text-indigo-500 shadow-sm ring-1 ring-indigo-100">
+              <Eye size={18} />
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            <div className="rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-slate-100">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Subject</p>
+              <p className="mt-2 text-sm font-semibold text-slate-900">{previewSubject}</p>
+            </div>
+
+            <div className="rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-slate-100">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">HTML Preview</p>
+              <div
+                className="prose prose-sm mt-3 max-w-none text-slate-600"
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {["{{name}} -> Aarav Mehta", "{{email}} -> aarav@example.com"].map((token) => (
+                <span
+                  key={token}
+                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200"
+                >
+                  {token}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </motion.section>
