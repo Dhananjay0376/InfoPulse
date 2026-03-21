@@ -65,3 +65,36 @@ export async function createUserRecord(input: CreateUserRecordInput) {
 
   return mapUser(result.rows[0]);
 }
+
+interface UpdateUserRecordInput {
+  userId: string;
+  role: UserRole;
+  isActive: boolean;
+}
+
+export async function updateUserRecord(input: UpdateUserRecordInput) {
+  const result = await db.query(
+    `UPDATE users
+     SET role = $2,
+         is_active = $3,
+         updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, email, password_hash, full_name, role, is_active, created_at, updated_at`,
+    [input.userId, input.role, input.isActive]
+  );
+
+  return result.rows[0] ? mapUser(result.rows[0]) : null;
+}
+
+export async function updateUserPassword(userId: string, passwordHash: string) {
+  const result = await db.query(
+    `UPDATE users
+     SET password_hash = $2,
+         updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, email, password_hash, full_name, role, is_active, created_at, updated_at`,
+    [userId, passwordHash]
+  );
+
+  return result.rows[0] ? mapUser(result.rows[0]) : null;
+}

@@ -1,5 +1,10 @@
 import { HttpError } from "../lib/http-error.js";
-import { createUserRecord, listUserRecords } from "../repositories/users.js";
+import {
+  createUserRecord,
+  listUserRecords,
+  updateUserPassword,
+  updateUserRecord,
+} from "../repositories/users.js";
 import { hashPassword } from "./password.js";
 import type { AuthUser, UserRole } from "../types/user.js";
 
@@ -10,17 +15,30 @@ interface CreateUserInput {
   role: UserRole;
 }
 
+interface UpdateUserInput {
+  userId: string;
+  role: UserRole;
+  isActive: boolean;
+}
+
+interface ResetPasswordInput {
+  userId: string;
+  password: string;
+}
+
 function toAuthUser(user: {
   id: string;
   email: string;
   fullName: string;
   role: UserRole;
+  isActive?: boolean;
 }): AuthUser {
   return {
     id: user.id,
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    isActive: user.isActive,
   };
 }
 
@@ -53,4 +71,25 @@ export async function createUser(input: CreateUserInput) {
 
     throw error;
   }
+}
+
+export async function updateUser(input: UpdateUserInput) {
+  const user = await updateUserRecord(input);
+
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
+
+  return toAuthUser(user);
+}
+
+export async function resetUserPassword(input: ResetPasswordInput) {
+  const passwordHash = await hashPassword(input.password);
+  const user = await updateUserPassword(input.userId, passwordHash);
+
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
+
+  return toAuthUser(user);
 }
