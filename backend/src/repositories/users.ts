@@ -1,5 +1,5 @@
 import { db } from "../db/pool.js";
-import type { UserRecord } from "../types/user.js";
+import type { UserRecord, UserRole } from "../types/user.js";
 
 function mapUser(row: Record<string, unknown>): UserRecord {
   return {
@@ -36,4 +36,32 @@ export async function findUserById(id: string) {
   );
 
   return result.rows[0] ? mapUser(result.rows[0]) : null;
+}
+
+export async function listUserRecords() {
+  const result = await db.query(
+    `SELECT id, email, password_hash, full_name, role, is_active, created_at, updated_at
+     FROM users
+     ORDER BY created_at DESC`
+  );
+
+  return result.rows.map(mapUser);
+}
+
+interface CreateUserRecordInput {
+  email: string;
+  passwordHash: string;
+  fullName: string;
+  role: UserRole;
+}
+
+export async function createUserRecord(input: CreateUserRecordInput) {
+  const result = await db.query(
+    `INSERT INTO users (email, password_hash, full_name, role)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, email, password_hash, full_name, role, is_active, created_at, updated_at`,
+    [input.email.toLowerCase(), input.passwordHash, input.fullName, input.role]
+  );
+
+  return mapUser(result.rows[0]);
 }
