@@ -1,4 +1,4 @@
-# InfoPulse
+# InfoPulse 
 
 InfoPulse is a customer messaging dashboard with:
 
